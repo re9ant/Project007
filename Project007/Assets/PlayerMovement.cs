@@ -6,17 +6,27 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
-    private CharacterController controller;
-    private Vector3 playerVelocity;
-    private bool groundedPlayer;
+    [Header("Movement Variables")]
     [SerializeField] private float playerSpeed = 2.0f;
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float gravityValue = -9.81f;
-    private bool backwards = false;
     
+    [Header("DO NOT MESS")]
+    [SerializeField] private Animator animator;
+
+    private CharacterController controller;
+    private Vector3 playerVelocity;
+    private bool groundedPlayer;
+    private bool backwards = false;
+
+    private int speed_Hash;
+    private Vector3 move;
+
+
     private void Start()
     {
         controller = gameObject.GetComponent<CharacterController>();
+        speed_Hash = Animator.StringToHash("Speed");
     }
     
     void Update()
@@ -27,7 +37,7 @@ public class PlayerMovement : MonoBehaviour
             playerVelocity.y = 0f;
         }
 
-        Vector3 move = new Vector3(Input.GetAxis("Horizontal"), 0, 0);
+        move = new Vector3(Input.GetAxis("Horizontal"), 0, 0);
         controller.Move(move * Time.deltaTime * playerSpeed);
 
         if (move.x < 0.0f)
@@ -39,7 +49,6 @@ public class PlayerMovement : MonoBehaviour
             backwards = false;
         }
 
-        // Changes the height position of the player..
         if (Input.GetButtonDown("Jump") && groundedPlayer)
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
@@ -56,5 +65,13 @@ public class PlayerMovement : MonoBehaviour
         {
             transform.rotation = new Quaternion();
         }
+        SetAnimations();
     }
+
+    private void SetAnimations()
+    {
+        Debug.Log(move);
+        animator.SetFloat(speed_Hash, Mathf.Abs(move.x));
+    }
+
 }
