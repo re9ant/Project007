@@ -58,19 +58,30 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(playerVelocity * Time.deltaTime);
         if (backwards)
         {
-            transform.rotation = new Quaternion(0, 180, 0, 0);
+            if(transform.rotation.y < 180)
+            {
+                Vector3 currRot = transform.rotation.eulerAngles;
+                Vector3 targetRot = new Vector3(0, 180);
+                Vector3 finalRot = Vector3.Lerp(currRot, targetRot, Time.deltaTime * 7);
+                transform.rotation = Quaternion.Euler(finalRot);
+            }
         }
 
         if (!backwards)
         {
-            transform.rotation = new Quaternion();
+            if (transform.rotation.y > 0)
+            {
+                Vector3 currRot = transform.rotation.eulerAngles;
+                Vector3 targetRot = new Vector3(0, 0);
+                Vector3 finalRot = Vector3.Lerp(currRot, targetRot, Time.deltaTime * 7);
+                transform.rotation = Quaternion.Euler(finalRot);
+            }
         }
         SetAnimations();
     }
 
     private void SetAnimations()
     {
-        Debug.Log(move);
         animator.SetFloat(speed_Hash, Mathf.Abs(move.x));
     }
 
