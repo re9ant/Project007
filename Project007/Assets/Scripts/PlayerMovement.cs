@@ -78,6 +78,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
         SetAnimations();
+        Debug.Log(Input.GetAxis("Horizontal"));
     }
 
     private void SetAnimations()
