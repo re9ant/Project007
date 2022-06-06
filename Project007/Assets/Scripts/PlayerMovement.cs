@@ -7,7 +7,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Variables")]
-    [SerializeField] private float playerSpeed = 2.0f;
+    //[SerializeField] private float playerSpeed = 2.0f;
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float gravityValue = -9.81f;
     
@@ -20,6 +20,8 @@ public class PlayerMovement : MonoBehaviour
     private bool backwards = false;
 
     private int speed_Hash;
+    private int jump_Hash;
+    private int grounded_Hash;
     private Vector3 move;
 
 
@@ -27,18 +29,22 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = gameObject.GetComponent<CharacterController>();
         speed_Hash = Animator.StringToHash("Speed");
+        jump_Hash = Animator.StringToHash("Jump");
+        grounded_Hash = Animator.StringToHash("Grounded");
     }
     
     void Update()
     {
-        groundedPlayer = controller.isGrounded;
+        Ray ray = new Ray(transform.position, transform.TransformDirection(Vector3.down));
+        groundedPlayer = Physics.Raycast(ray, 1f);
+        animator.SetBool(grounded_Hash, groundedPlayer);
         if (groundedPlayer && playerVelocity.y < 0)
         {
             playerVelocity.y = 0f;
         }
-
         move = new Vector3(Input.GetAxis("Horizontal"), 0, 0);
-        controller.Move(move * Time.deltaTime * playerSpeed);
+        float inputMagnitude = Mathf.Clamp01(move.magnitude);
+        animator.SetFloat(speed_Hash, inputMagnitude, 0.05f, Time.deltaTime);
 
         if (move.x < 0.0f)
         {
@@ -52,10 +58,11 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetButtonDown("Jump") && groundedPlayer)
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+            animator.SetTrigger(jump_Hash);
         }
 
         playerVelocity.y += gravityValue * Time.deltaTime;
-        controller.Move(playerVelocity * Time.deltaTime);
+        //controller.Move(playerVelocity * Time.deltaTime);
         if (backwards)
         {
             if(transform.rotation.y < 180)
@@ -77,13 +84,15 @@ public class PlayerMovement : MonoBehaviour
                 transform.rotation = Quaternion.Euler(finalRot);
             }
         }
-        SetAnimations();
-        Debug.Log(Input.GetAxis("Horizontal"));
     }
 
-    private void SetAnimations()
+    private void OnAnimatorMove()
     {
-        animator.SetFloat(speed_Hash, Mathf.Abs(move.x));
+        Vector3 velocity = animator.deltaPosition;
+        velocity.x = velocity.z;
+        velocity.z = 0;
+        velocity.y = playerVelocity.y * Time.deltaTime;
+        controller.Move(velocity);
     }
 
 }
