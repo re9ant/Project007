@@ -94,7 +94,7 @@ public class PlayerMovement : MonoBehaviour
         velocity.y = playerVelocity.y * Time.deltaTime;
         if(!groundedPlayer)
         {
-            velocity.x = Input.GetAxis("Horizontal") * 0.01f;
+            velocity.x = Input.GetAxis("Horizontal") * 2f * Time.deltaTime;
         }
         controller.Move(velocity);
     }
