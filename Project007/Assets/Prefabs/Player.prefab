@@ -78,9 +78,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c129bf7d441b734394f7efa7aa1b7dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpHeight: 0.75
-  horizontalJumpMultipler: 1.5
-  rotationSpeed: 5
+  playerState: 0
+  jumpHeight: 0.5
+  horizontalJumpMultipler: 2
+  idleRotationSpeed: 1
+  jogRotationSpeed: 5
   gravityValue: -20
   animator: {fileID: 6908385204787833944}
 --- !u!95 &6908385204787833944

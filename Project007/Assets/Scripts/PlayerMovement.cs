@@ -15,7 +15,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement Variables")]
     [SerializeField] private float jumpHeight = 1.0f;
     [SerializeField] private float horizontalJumpMultipler = 1.25f;
-    [SerializeField] private float rotationSpeed = 3.0f;
+    [SerializeField] private float idleRotationSpeed = 1.0f;
+    [SerializeField] private float jogRotationSpeed = 3.0f;
     [SerializeField] private float gravityValue = -9.81f;
     
     [Header("DO NOT MESS")]
@@ -92,7 +93,19 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(playerVelocity * Time.deltaTime);
 
         //Rotate Player
-        transform.Rotate(0, turnAxis * rotationSpeed, 0);
+        transform.Rotate(0, turnAxis * GetRelevantRotationSpeeds() * Time.deltaTime, 0);
+    }
+
+    private float GetRelevantRotationSpeeds()
+    {
+        if (playerState == PlayerState.Idle)
+        {
+            return idleRotationSpeed;
+        }
+        else
+        {
+            return jogRotationSpeed;
+        }
     }
 
     private void OnAnimatorMove()
