@@ -3,12 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum PlayerState { Idle, Moving, Falling };
+
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Debuging")]
+    public PlayerState playerState = PlayerState.Idle;
+
     [Header("Movement Variables")]
-    //[SerializeField] private float playerSpeed = 2.0f;
     [SerializeField] private float jumpHeight = 1.0f;
+    [SerializeField] private float horizontalJumpMultipler = 1.25f;
+    [SerializeField] private float rotationSpeed = 3.0f;
     [SerializeField] private float gravityValue = -9.81f;
     
     [Header("DO NOT MESS")]
@@ -17,17 +24,14 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController controller;
     private Vector3 playerVelocity;
     private bool groundedPlayer;
-    //private bool backwards = false;
 
     private int speed_Hash;
     private int angle_Hash;
     private int jump_Hash;
     private int grounded_Hash;
-    private Vector3 move;
-    private Vector3 turn;
 
-    private float verticalAxis;
-    private float horizontalAxis;
+    private float moveAxis;
+    private float turnAxis;
 
     private void Start()
     {
@@ -40,8 +44,11 @@ public class PlayerMovement : MonoBehaviour
     
     void Update()
     {
-        verticalAxis = Input.GetAxis("Vertical");
-        horizontalAxis = Input.GetAxis("Horizontal");
+        //Inputs
+        moveAxis = Input.GetAxis("Vertical");
+        turnAxis = Input.GetAxis("Horizontal");
+
+        //Detecting if the player is on ground by castng a ray
         Ray ray = new Ray(transform.position, transform.TransformDirection(Vector3.down));
         groundedPlayer = Physics.Raycast(ray, 1f);
         animator.SetBool(grounded_Hash, groundedPlayer);
@@ -49,63 +56,55 @@ public class PlayerMovement : MonoBehaviour
         {
             playerVelocity.y = 0f;
         }
-        move = new Vector3(verticalAxis, 0, 0);
-        float movementMagnitude = Mathf.Clamp(move.magnitude, -1.0f, 1.0f);
-        animator.SetFloat(speed_Hash, movementMagnitude, 0.05f, Time.deltaTime);
-        float angleMagnitude = Mathf.Clamp(horizontalAxis, -1.0f, 1.0f);
-        animator.SetFloat(angle_Hash, angleMagnitude, 0.05f, Time.deltaTime);
 
-        //if (move.x < 0.0f)
-        //{
-        //    backwards = true;
-        //}
-        //else if(move.x > 0.0f)
-        //{
-        //    backwards = false;
-        //}
+        //Detecting PlayerState
+        if (moveAxis == 0)
+        {
+            if(groundedPlayer)
+            {
+                playerState = PlayerState.Idle;
+            }
+        }
 
-        if (Input.GetButtonDown("Jump") && groundedPlayer)
+        else if (moveAxis != 0)
+        {
+            playerState = PlayerState.Moving;
+        }
+
+        if (!groundedPlayer)
+        {
+            playerState = PlayerState.Falling;
+        }
+
+        //Sending animator values
+        animator.SetFloat(speed_Hash, moveAxis, 0.05f, Time.deltaTime);
+        animator.SetFloat(angle_Hash, turnAxis, 0.05f, Time.deltaTime);
+
+        //Handling Jump
+        if (Input.GetButtonDown("Jump") && groundedPlayer && moveAxis >= 0)
         {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
             animator.SetTrigger(jump_Hash);
         }
 
+        //Gravity
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
-        //if (backwards)
-        //{
-        //    if (transform.rotation.y < 180)
-        //    {
-        //        Vector3 currRot = transform.rotation.eulerAngles;
-        //        Vector3 targetRot = new Vector3(0, 180);
-        //        Vector3 finalRot = Vector3.Lerp(currRot, targetRot, Time.deltaTime * 7);
-        //        transform.rotation = Quaternion.Euler(finalRot);
-        //    }
-        //}
 
-        //else if (!backwards)
-        //{
-        //    if (transform.rotation.y > 0)
-        //    {
-        //        Vector3 currRot = transform.rotation.eulerAngles;
-        //        Vector3 targetRot = new Vector3(0, 0);
-        //        Vector3 finalRot = Vector3.Lerp(currRot, targetRot, Time.deltaTime * 7);
-        //        transform.rotation = Quaternion.Euler(finalRot);
-        //    }
-        //}
-        transform.Rotate(0, horizontalAxis, 0);
-
+        //Rotate Player
+        transform.Rotate(0, turnAxis * rotationSpeed, 0);
     }
 
     private void OnAnimatorMove()
     {
         Vector3 velocity = animator.deltaPosition;
-        velocity.y = playerVelocity.y * Time.deltaTime;
         if(!groundedPlayer)
         {
-            velocity.x = verticalAxis * 1.25f * Time.deltaTime;
+            velocity.x = moveAxis * horizontalJumpMultipler * Time.deltaTime;
         }
-        controller.Move(transform.forward * velocity.magnitude);
+        Vector3 move = transform.forward * velocity.magnitude;
+        move *= (moveAxis < 0) ? -1 : 1;
+        controller.Move(move);
     }
 
 }
