@@ -52,7 +52,7 @@ public class PetController : MonoBehaviour
     private void ManageNavigation()
     {
         float remainingDistance = Vector3.Distance(transform.position, target.position);
-        if (remainingDistance < 0.3f)
+        if (remainingDistance < 0.5f)
         {
             navAgent.isStopped = true;
         }
@@ -61,10 +61,5 @@ public class PetController : MonoBehaviour
             navAgent.isStopped = false;
         }
         navAgent.SetDestination(target.position);
-    }
-
-    private void OnAnimatorMove()
-    {
-        navAgent.speed = myAnimator.deltaPosition.magnitude * Time.deltaTime;
     }
 }
