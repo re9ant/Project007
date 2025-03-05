@@ -46,7 +46,6 @@ public class CameraBehavior : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.name);
         if (other.TryGetComponent<CameraPositions>(out CameraPositions camPos))
         {
             Debug.Log("Hi");
